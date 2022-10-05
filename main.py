@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from MAB import BernoulliBandit
 from GradientBandit import GradientBandit
+from RandomBandit import RandomBandit
+from SoftmaxBandit import SoftmaxBandit
 from TPS import ThompsonSampling
 
 np.random.seed(1)
@@ -10,8 +12,6 @@ bandit_10_arm = BernoulliBandit(K)
 print("随机生成了一个 %d臂伯努利老虎机" % K)
 print("获得奖励概率最大的拉杆为%d号，其获奖概率为%.4f" % (bandit_10_arm.best_idx, bandit_10_arm.best_prob))
 
-np.random.seed(1)
-gradient_solver = GradientBandit(bandit_10_arm, alpha = 0.1)
 
 
 def plot_results(solvers, solver_names):
@@ -25,14 +25,50 @@ def plot_results(solvers, solver_names):
     plt.legend()
     plt.show()
 
-if __name__ == "__main__":
-    gradient_solver.run(5000)
-    plot_results([gradient_solver], ["GradientBandit"])
+def test_random_solver():
+    np.random.seed(1)
+    random_solver = RandomBandit(bandit_10_arm)
+    random_solver.run(5000)
+    print('RandomSolver的累积懊悔为：', random_solver.regret)
+    plot_results([random_solver],["RandomSolver"])
 
+def test_softmax_solver():
+    np.random.seed(1)
+    softmax_solver = SoftmaxBandit(bandit_10_arm)
+    softmax_solver.run(5000)
+    print("SoftmaxSolver的累积懊悔为:", softmax_solver.regret)
+    plot_results([softmax_solver],["SoftmaxSolver"])
+
+def test_gradient_solver():
+    np.random.seed(1)
+    gradient_solver_1_base = GradientBandit(bandit_10_arm, alpha = 0.1, base = True)
+    gradient_solver_1_nobase = GradientBandit(bandit_10_arm, alpha = 0.1)
+    gradient_solver_4_base = GradientBandit(bandit_10_arm, alpha = 0.4, base = True)
+    gradient_solver_4_nobase = GradientBandit(bandit_10_arm, alpha = 0.4)
+    gradient_solver_1_base.run(5000)
+    print("alpha=0.1,有baseline的GradientSolver累积懊悔为：",gradient_solver_1_base.regret)
+    gradient_solver_1_nobase.run(5000)
+    print("alpha=0.1,无baseline的GradientSolver累积懊悔为：",gradient_solver_1_nobase.regret)
+    gradient_solver_4_base.run(5000)
+    print("alpha=0.4,有baseline的GradientSolver累积懊悔为：",gradient_solver_4_base.regret)
+    gradient_solver_4_nobase.run(5000)
+    print("alpha=0.4,无baseline的GradientSolver累积懊悔为：",gradient_solver_4_nobase.regret)
+    solvers = [gradient_solver_1_base,gradient_solver_1_nobase,gradient_solver_4_base,gradient_solver_4_nobase]
+    names = ["GradientBandit_0.1_baseline","GradientBandit_0.1_nobaseline","GradientBandit_0.4_baseline","GradientBandit_0.4_nobaseline"]
+    plot_results(solvers, names)
+
+def test_tompson_sampling_solver():
     np.random.seed(1)
     thompsom_sampling_solver = ThompsonSampling(bandit_10_arm)
     thompsom_sampling_solver.run(5000)
     print('TPS的累积懊悔为：', thompsom_sampling_solver.regret)
     plot_results([thompsom_sampling_solver], ['TPS'])
+
+if __name__ == "__main__":
+    test_random_solver()
+    test_softmax_solver()
+    test_gradient_solver()
+    test_tompson_sampling_solver()
+    
 
 

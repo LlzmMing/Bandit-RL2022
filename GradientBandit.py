@@ -6,33 +6,32 @@ def softmax(x):
     return softmax
 
 class GradientBandit(Solver):
-    def __init__(self, bandit, alpha):
+    def __init__(self, bandit, alpha,base=False):
         super(GradientBandit,self).__init__(bandit)
-        self.R = np.zeros(bandit.K)
+        self.R = 0.0
         self.H = np.zeros(bandit.K)
         self.arms = np.arange(bandit.K)
         self.alpha = alpha
+        self.steps = 0
+        self.base = base
     
     def run_one_step(self):
         
         P = softmax(self.H)
-        #print(P)
+
         arm = np.random.choice(self.arms, size=1, p=P)[0]
         r = self.bandit.step(arm)
-        #print(arm)
-        #print(r)
-        #print(self.counts)
-        #print(self.R)
-        #print(self.H)
+        
+        self.steps += 1
+        if self.base:
+            self.R = self.R + 1/self.steps*(r-self.R)
+        
+
         for i in self.arms:
-            if (self.counts[i]!=0):
-                self.R[i] = self.R[i] + 1/self.counts[i]*(r-self.R[i])
-            else:
-                self.R[i] = r
             if i == arm:
-                self.H[i] = self.H[i] + self.alpha*(r - self.R[i])*(1-P[i])
+                self.H[i] = self.H[i] + self.alpha*(r - self.R)*(1-P[i])
             else:
-                self.H[i] = self.H[i] - self.alpha*(r - self.R[i])*P[i]
+                self.H[i] = self.H[i] - self.alpha*(r - self.R)*P[i]
         #print(self.R)
         #print(self.H)
         return arm
