@@ -5,6 +5,7 @@ from GradientBandit import GradientBandit
 from RandomBandit import RandomBandit
 from SoftmaxBandit import SoftmaxBandit
 from TPS import ThompsonSampling
+from UCB_v1 import UCB
 
 np.random.seed(1)
 K = 10
@@ -12,7 +13,10 @@ bandit_10_arm = BernoulliBandit(K)
 print("随机生成了一个 %d臂伯努利老虎机" % K)
 print("获得奖励概率最大的拉杆为%d号，其获奖概率为%.4f" % (bandit_10_arm.best_idx, bandit_10_arm.best_prob))
 
-
+print('the true q-values for each arm are:')
+for value in bandit_10_arm.probs:
+    print('{}'.format(np.format_float_positional(value,precision=4)),end = ' ')
+print()
 
 def plot_results(solvers, solver_names):
     """生成累积懊悔随时间变化的图像。输入solvers是一个列表，列表中每个元素是一种特定的策略。而solver_names也是一个列表，包含每个策略的名称"""
@@ -64,11 +68,22 @@ def test_tompson_sampling_solver():
     print('TPS的累积懊悔为：', thompsom_sampling_solver.regret)
     plot_results([thompsom_sampling_solver], ['TPS'])
 
+def test_UCB_solver():
+    np.random.seed(1)
+    UCB_solver_1 = UCB(bandit_10_arm, coef= 1)
+    UCB_solver_2 = UCB(bandit_10_arm, coef = 0.5)
+    UCB_solver_3 = UCB(bandit_10_arm, coef = 0.1)
+    UCB_solver_4 = UCB(bandit_10_arm, coef = 0)
+    solvers = [UCB_solver_1,UCB_solver_2,UCB_solver_3,UCB_solver_4]
+    for solver in solvers:
+        solver.run(8000)
+    plot_results(solvers, ["UCB-coef=1","UCB-coef=0.5","UCB-coef=0.1", "greedy UCB-coef=0"])
+
 if __name__ == "__main__":
     test_random_solver()
     test_softmax_solver()
     test_gradient_solver()
     test_tompson_sampling_solver()
-    
+    test_UCB_solver()
 
 
