@@ -6,6 +6,8 @@ from RandomBandit import RandomBandit
 from SoftmaxBandit import SoftmaxBandit
 from TPS import ThompsonSampling
 from UCB_v1 import UCB
+from EpsilonGreedy import EpsilonGreedy
+from EpsilonGreedy import DecayingEpsilonGreedy
 
 np.random.seed(1)
 K = 10
@@ -42,6 +44,27 @@ def test_softmax_solver():
     softmax_solver.run(5000)
     print("SoftmaxSolver的累积懊悔为:", softmax_solver.regret)
     plot_results([softmax_solver],["SoftmaxSolver"])
+
+def test_EpsilonGreedy_solver():
+    np.random.seed(1)
+    epsilon_greedy_solver = EpsilonGreedy(bandit_10_arm, epsilon=0.01)
+    epsilon_greedy_solver.run(5000)
+    print('epsilon贪心算法的累积懊悔为：', epsilon_greedy_solver.regret)
+    plot_results([epsilon_greedy_solver], ["EpsilonGreedy"])
+
+    np.random.seed(0)
+    epsilons = [1e-4, 0.01, 0.1, 0.25, 0.5]
+    epsilon_greedy_solver_list = [EpsilonGreedy(bandit_10_arm, epsilon=e) for e in epsilons]
+    epsilon_greedy_solver_names = ["epsilon={}".format(e) for e in epsilons]
+    for solver in epsilon_greedy_solver_list:
+        solver.run(5000)
+    plot_results(epsilon_greedy_solver_list, epsilon_greedy_solver_names)
+
+    np.random.seed(1)
+    decaying_epsilon_greedy_solver = DecayingEpsilonGreedy(bandit_10_arm)
+    decaying_epsilon_greedy_solver.run(5000)
+    print('epsilon衰减的贪心算法的累积懊悔为：', decaying_epsilon_greedy_solver.regret)
+    plot_results([decaying_epsilon_greedy_solver], ["DecayingEpsilonGreedy"])
 
 def test_gradient_solver():
     np.random.seed(1)
@@ -82,6 +105,7 @@ def test_UCB_solver():
 if __name__ == "__main__":
     test_random_solver()
     test_softmax_solver()
+    test_EpsilonGreedy_solver()
     test_gradient_solver()
     test_tompson_sampling_solver()
     test_UCB_solver()
